@@ -1,13 +1,31 @@
-// Update this page (the content is just a fallback if you fail to update the page)
 
-const Index = () => {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+import React from 'react';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import LoginForm from '@/components/LoginForm';
+import HomePage from '@/components/HomePage';
+
+const AppContent: React.FC = () => {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-scout-paper">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-scout-forest mx-auto mb-4"></div>
+          <p className="text-scout-forest font-medium">Caricamento...</p>
+        </div>
       </div>
-    </div>
+    );
+  }
+
+  return user ? <HomePage /> : <LoginForm />;
+};
+
+const Index: React.FC = () => {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 };
 
