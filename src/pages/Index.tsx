@@ -1,10 +1,10 @@
 
 import React from 'react';
-import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import LoginForm from '@/components/LoginForm';
 import HomePage from '@/components/HomePage';
 
-const AppContent: React.FC = () => {
+const Index: React.FC = () => {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
@@ -19,14 +19,6 @@ const AppContent: React.FC = () => {
   }
 
   return user ? <HomePage /> : <LoginForm />;
-};
-
-const Index: React.FC = () => {
-  return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
-  );
 };
 
 export default Index;
