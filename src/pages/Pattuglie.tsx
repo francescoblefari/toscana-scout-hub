@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -81,7 +80,7 @@ const Pattuglie: React.FC = () => {
       addedBy: 'Consiglio Generale',
       addedDate: '2024-01-01'
     }
-  ];
+  ]);
 
   const filteredPatrols = patrols.filter(patrol => {
     const matchesSearch = patrol.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
