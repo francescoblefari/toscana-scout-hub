@@ -3,99 +3,78 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Plus, Search, Download, Calendar, Eye, FileText } from "lucide-react";
+import { ArrowLeft, Plus, Search, Calendar, Download, Eye } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import { useAuth } from '../contexts/AuthContext';
+import AddIssueModal from '../components/modals/AddIssueModal';
 
-interface Magazine {
+interface Issue {
   id: string;
+  number: string;
   title: string;
-  issueNumber: number;
-  year: number;
-  month: string;
   description: string;
-  coverImage: string;
-  pdfUrl: string;
-  fileSize: string;
-  downloadCount: number;
   publishDate: string;
-  articles: string[];
+  coverImage: string;
+  downloadCount: number;
+  fileSize: string;
 }
 
 const ToscanaScout: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  // Mock data
-  const [magazines] = useState<Magazine[]>([
+  const [issues] = useState<Issue[]>([
     {
       id: '1',
-      title: 'Toscana Scout - Primavera 2024',
-      issueNumber: 95,
-      year: 2024,
-      month: 'Marzo',
-      description: 'Numero speciale dedicato ai campi estivi e alle novità della metodologia',
-      coverImage: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300',
-      pdfUrl: '/downloads/toscana-scout-95.pdf',
-      fileSize: '12.5 MB',
-      downloadCount: 245,
+      number: '2024/1',
+      title: 'Primavera Scout',
+      description: 'Numero speciale dedicato alle attività primaverili e ai campi estivi',
       publishDate: '2024-03-15',
-      articles: ['Campi Estivi 2024', 'Metodologia L/C', 'Route Nazionali', 'Sostenibilità']
+      coverImage: '/placeholder.svg',
+      downloadCount: 245,
+      fileSize: '12.5 MB'
     },
     {
       id: '2',
-      title: 'Toscana Scout - Inverno 2024',
-      issueNumber: 94,
-      year: 2024,
-      month: 'Gennaio',
-      description: 'Focus sulla formazione capi e progetti regionali',
-      coverImage: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300',
-      pdfUrl: '/downloads/toscana-scout-94.pdf',
-      fileSize: '9.8 MB',
+      number: '2023/4',
+      title: 'Natale in Famiglia',
+      description: 'Riflessioni sul valore della famiglia e delle tradizioni natalizie scout',
+      publishDate: '2023-12-10',
+      coverImage: '/placeholder.svg',
       downloadCount: 189,
-      publishDate: '2024-01-20',
-      articles: ['Formazione Capi', 'Progetti Regionali', 'Interviste', 'Calendario Eventi']
+      fileSize: '8.9 MB'
     },
     {
       id: '3',
-      title: 'Toscana Scout - Autunno 2023',
-      issueNumber: 93,
-      year: 2023,
-      month: 'Ottobre',
-      description: 'Speciale Assemblea Regionale e attività autunnali',
-      coverImage: 'https://images.unsplash.com/photo-1509909756405-be0199881695?w=300',
-      pdfUrl: '/downloads/toscana-scout-93.pdf',
-      fileSize: '11.2 MB',
-      downloadCount: 156,
-      publishDate: '2023-10-10',
-      articles: ['Assemblea Regionale', 'Attività Autunnali', 'Scout nel Mondo', 'Sostenibilità']
+      number: '2023/3',
+      title: 'Strada e Servizio',
+      description: 'Approfondimenti sulla branca R/S e il servizio nella comunità',
+      publishDate: '2023-09-20',
+      coverImage: '/placeholder.svg',
+      downloadCount: 167,
+      fileSize: '11.2 MB'
     }
   ]);
 
-  const years = Array.from(new Set(magazines.map(mag => mag.year))).sort((a, b) => b - a);
-
-  const filteredMagazines = magazines.filter(magazine => {
-    const matchesSearch = magazine.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         magazine.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         magazine.articles.some(article => article.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesYear = !selectedYear || magazine.year === selectedYear;
-    return matchesSearch && matchesYear;
-  });
+  const filteredIssues = issues.filter(issue => 
+    issue.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    issue.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    issue.number.includes(searchTerm)
+  );
 
   const isAdmin = user?.role === 'admin';
 
-  const handleDownload = (magazine: Magazine) => {
-    // In produzione, qui ci sarebbe la logica per scaricare il PDF
-    console.log(`Downloading: ${magazine.title}`);
-    // Simuliamo il download
-    const link = document.createElement('a');
+  const handleDownload = (issue: Issue) => {
+    console.log(`Downloading issue: ${issue.number}`);
+    const link = window.document.createElement('a');
     link.href = '#';
-    link.download = `${magazine.title}.pdf`;
+    link.download = `toscana_scout_${issue.number.replace('/', '_')}.pdf`;
+    window.document.body.appendChild(link);
     link.click();
+    window.document.body.removeChild(link);
   };
 
   return (
@@ -103,7 +82,7 @@ const ToscanaScout: React.FC = () => {
       <Header />
       
       <main className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div className="flex items-center space-x-4">
             <Button 
               variant="outline" 
@@ -114,15 +93,15 @@ const ToscanaScout: React.FC = () => {
               Home
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-scout-forest">📖 Toscana Scout</h1>
-              <p className="text-gray-600 mt-1">Archivio della rivista ufficiale AGESCI Toscana</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-scout-forest">📖 Toscana Scout</h1>
+              <p className="text-gray-600 mt-1 text-sm sm:text-base">Archivio rivista ufficiale regionale</p>
             </div>
           </div>
           
           {isAdmin && (
             <Button 
-              onClick={() => navigate('/admin/toscana-scout/nuovo')}
-              className="bg-scout-forest hover:bg-scout-forest/90 text-white"
+              onClick={() => setIsAddModalOpen(true)}
+              className="bg-scout-forest hover:bg-scout-forest/90 text-white w-full sm:w-auto"
             >
               <Plus className="w-4 h-4 mr-2" />
               Carica Numero
@@ -130,110 +109,61 @@ const ToscanaScout: React.FC = () => {
           )}
         </div>
 
-        {/* Filtri e Ricerca */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border mb-8">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder="Cerca per titolo, descrizione o articoli..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant={selectedYear === null ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedYear(null)}
-                className={selectedYear === null ? "bg-scout-forest" : ""}
-              >
-                Tutti gli anni
-              </Button>
-              {years.map(year => (
-                <Button
-                  key={year}
-                  variant={selectedYear === year ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedYear(year)}
-                  className={selectedYear === year ? "bg-scout-forest" : ""}
-                >
-                  {year}
-                </Button>
-              ))}
-            </div>
+        {/* Ricerca */}
+        <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border mb-8">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="Cerca per numero, titolo o descrizione..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
         </div>
 
-        {/* Lista Riviste */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredMagazines.map(magazine => (
-            <Card key={magazine.id} className="scout-card hover:shadow-lg transition-shadow">
-              <div className="relative">
-                <img 
-                  src={magazine.coverImage} 
-                  alt={magazine.title}
-                  className="w-full h-48 object-cover rounded-t-lg"
-                />
-                <div className="absolute top-2 right-2">
-                  <Badge className="bg-scout-forest text-white">
-                    N° {magazine.issueNumber}
-                  </Badge>
-                </div>
-                {isAdmin && (
-                  <div className="absolute top-2 left-2">
-                    <Button variant="outline" size="sm" className="bg-white/90">
-                      Modifica
-                    </Button>
+        {/* Lista Numeri */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          {filteredIssues.map(issue => (
+            <Card key={issue.id} className="scout-card hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-4">
+                <div className="flex items-start justify-between">
+                  <div className="w-full">
+                    <div className="aspect-[3/4] bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
+                      <span className="text-4xl">📖</span>
+                    </div>
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="text-sm font-semibold text-scout-forest mb-1">
+                          Numero {issue.number}
+                        </div>
+                        <CardTitle className="text-lg text-scout-forest leading-tight">
+                          {issue.title}
+                        </CardTitle>
+                      </div>
+                      {isAdmin && (
+                        <Button variant="outline" size="sm" className="ml-2">
+                          Modifica
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                )}
-              </div>
-              
-              <CardHeader>
-                <CardTitle className="text-lg text-scout-forest">{magazine.title}</CardTitle>
-                <CardDescription>{magazine.description}</CardDescription>
+                </div>
+                <CardDescription className="text-sm">{issue.description}</CardDescription>
               </CardHeader>
 
-              <CardContent className="space-y-4">
-                <div className="flex justify-between text-sm text-gray-600">
-                  <div className="flex items-center">
-                    <Calendar className="w-4 h-4 mr-1" />
-                    {magazine.month} {magazine.year}
+              <CardContent className="space-y-4 pt-0">
+                <div className="text-sm text-gray-600 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
+                      <span>{new Date(issue.publishDate).toLocaleDateString('it-IT')}</span>
+                    </div>
+                    <span className="text-xs">{issue.fileSize}</span>
                   </div>
                   <div className="flex items-center">
-                    <FileText className="w-4 h-4 mr-1" />
-                    {magazine.fileSize}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold text-scout-forest mb-2 text-sm">Articoli principali:</h4>
-                  <div className="space-y-1">
-                    {magazine.articles.slice(0, 3).map(article => (
-                      <div key={article} className="text-sm text-gray-600 flex items-center">
-                        <span className="w-1 h-1 bg-scout-forest rounded-full mr-2"></span>
-                        {article}
-                      </div>
-                    ))}
-                    {magazine.articles.length > 3 && (
-                      <div className="text-sm text-gray-500">
-                        +{magazine.articles.length - 3} altri articoli
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="text-sm text-gray-500 flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Download className="w-4 h-4 mr-1" />
-                    {magazine.downloadCount} download
-                  </div>
-                  <div className="flex items-center">
-                    <Eye className="w-4 h-4 mr-1" />
-                    Anteprima
+                    <Download className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span>{issue.downloadCount} download</span>
                   </div>
                 </div>
 
@@ -246,7 +176,7 @@ const ToscanaScout: React.FC = () => {
                     Anteprima
                   </Button>
                   <Button 
-                    onClick={() => handleDownload(magazine)}
+                    onClick={() => handleDownload(issue)}
                     className="flex-1 bg-scout-forest hover:bg-scout-forest/90"
                   >
                     <Download className="w-4 h-4 mr-2" />
@@ -258,7 +188,7 @@ const ToscanaScout: React.FC = () => {
           ))}
         </div>
 
-        {filteredMagazines.length === 0 && (
+        {filteredIssues.length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">Nessun numero trovato</p>
           </div>
@@ -268,26 +198,24 @@ const ToscanaScout: React.FC = () => {
         <div className="mt-12">
           <Card className="scout-card">
             <CardHeader>
-              <CardTitle className="text-scout-forest">📖 Informazioni sulla Rivista</CardTitle>
+              <CardTitle className="text-xl text-scout-forest">📖 Informazioni sulla Rivista</CardTitle>
             </CardHeader>
-            <CardContent className="prose prose-sm max-w-none">
-              <p className="text-gray-700">
-                <strong>Toscana Scout</strong> è la rivista ufficiale dell'AGESCI Toscana, pubblicata 
-                trimestralmente per informare e coinvolgere tutti i capi scout della regione. 
+            <CardContent>
+              <p className="text-gray-700 leading-relaxed">
+                <strong>Toscana Scout</strong> è la rivista ufficiale della regione AGESCI Toscana. 
+                Pubblicata trimestralmente, raccoglie articoli, riflessioni e testimonianze 
+                dalla vita scout toscana. Ogni numero approfondisce temi educativi, 
+                metodologici e formativi legati allo scautismo.
               </p>
-              <p className="text-gray-700 mt-3">
-                Ogni numero contiene articoli su metodologia, eventi regionali, formazione, 
-                esperienze di gruppi e molto altro. La rivista è realizzata dalla Pattuglia Stampa 
-                Toscana con il contributo di capi e ragazzi di tutta la regione.
-              </p>
-              <div className="mt-4 text-sm text-gray-600">
-                <p><strong>Vuoi contribuire?</strong> Invia i tuoi articoli e foto alla Pattuglia Stampa!</p>
-                <p>Email: <a href="mailto:stampa@agesci-toscana.it" className="text-scout-forest">stampa@agesci-toscana.it</a></p>
-              </div>
             </CardContent>
           </Card>
         </div>
       </main>
+
+      <AddIssueModal 
+        open={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)} 
+      />
     </div>
   );
 };

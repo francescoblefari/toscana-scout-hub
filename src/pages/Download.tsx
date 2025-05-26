@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { ArrowLeft, Plus, Search, Download as DownloadIcon, FileText, Calendar, 
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import { useAuth } from '../contexts/AuthContext';
+import AddDocumentModal from '../components/modals/AddDocumentModal';
 
 interface Document {
   id: string;
@@ -26,6 +26,7 @@ const Download: React.FC = () => {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   // Mock data
   const [documents] = useState<Document[]>([
@@ -110,7 +111,7 @@ const Download: React.FC = () => {
           
           {isAdmin && (
             <Button 
-              onClick={() => navigate('/admin/download/nuovo')}
+              onClick={() => setIsAddModalOpen(true)}
               className="bg-scout-forest hover:bg-scout-forest/90 text-white w-full sm:w-auto"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -214,6 +215,11 @@ const Download: React.FC = () => {
           </div>
         )}
       </main>
+
+      <AddDocumentModal 
+        open={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)} 
+      />
     </div>
   );
 };

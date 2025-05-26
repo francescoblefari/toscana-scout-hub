@@ -6,6 +6,7 @@ import { ArrowLeft, Plus, Search, Phone, Mail, User, MapPin } from "lucide-react
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import { useAuth } from '../contexts/AuthContext';
+import AddPatrolModal from '../components/modals/AddPatrolModal';
 
 interface Patrol {
   id: string;
@@ -29,6 +30,7 @@ const Pattuglie: React.FC = () => {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   // Mock data
   const [patrols] = useState<Patrol[]>([
@@ -97,7 +99,7 @@ const Pattuglie: React.FC = () => {
       <Header />
       
       <main className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div className="flex items-center space-x-4">
             <Button 
               variant="outline" 
@@ -108,15 +110,15 @@ const Pattuglie: React.FC = () => {
               Home
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-scout-forest">👥 Pattuglie AGESCI</h1>
-              <p className="text-gray-600 mt-1">Contatti pattuglie regionali e nazionali</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-scout-forest">👥 Pattuglie AGESCI</h1>
+              <p className="text-gray-600 mt-1 text-sm sm:text-base">Contatti pattuglie regionali e nazionali</p>
             </div>
           </div>
           
           {isAdmin && (
             <Button 
-              onClick={() => navigate('/admin/pattuglie/nuova')}
-              className="bg-scout-forest hover:bg-scout-forest/90 text-white"
+              onClick={() => setIsAddModalOpen(true)}
+              className="bg-scout-forest hover:bg-scout-forest/90 text-white w-full sm:w-auto"
             >
               <Plus className="w-4 h-4 mr-2" />
               Aggiungi Pattuglia
@@ -125,7 +127,7 @@ const Pattuglie: React.FC = () => {
         </div>
 
         {/* Filtri e Ricerca */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border mb-8">
+        <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border mb-8">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
@@ -268,6 +270,11 @@ const Pattuglie: React.FC = () => {
           </div>
         )}
       </main>
+
+      <AddPatrolModal 
+        open={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)} 
+      />
     </div>
   );
 };

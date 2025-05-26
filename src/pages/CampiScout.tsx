@@ -4,97 +4,104 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Plus, Search, MapPin, Phone, Mail, Users, Calendar } from "lucide-react";
+import { ArrowLeft, Plus, Search, Calendar, MapPin, Users, Euro } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import { useAuth } from '../contexts/AuthContext';
+import AddCampModal from '../components/modals/AddCampModal';
 
-interface ScoutCamp {
+interface Camp {
   id: string;
-  name: string;
+  title: string;
+  location: string;
   description: string;
-  address: string;
-  city: string;
-  province: string;
-  contact: {
-    phone: string;
-    email: string;
-    responsible: string;
-  };
-  capacity: number;
-  services: string[];
-  status: 'approved' | 'pending' | 'rejected';
-  images: string[];
-  addedBy: string;
-  addedDate: string;
+  startDate: string;
+  endDate: string;
+  category: string;
+  ageGroup: string;
+  maxParticipants: number;
+  currentParticipants: number;
+  cost: number;
+  status: 'open' | 'full' | 'closed';
+  requirements: string[];
 }
 
 const CampiScout: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedProvince, setSelectedProvince] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  // Mock data
-  const [camps] = useState<ScoutCamp[]>([
+  const [camps] = useState<Camp[]>([
     {
       id: '1',
-      name: 'Campo Base Populonia',
-      description: 'Campo base regionale con vista sul mare, ideale per tutte le branche',
-      address: 'Via del Campo 123',
-      city: 'Populonia',
-      province: 'LI',
-      contact: {
-        phone: '+39 0565 123456',
-        email: 'populonia@agesci-toscana.it',
-        responsible: 'Marco Bianchi'
-      },
-      capacity: 120,
-      services: ['Cucina', 'Bagni', 'Docce', 'Area Fuoco', 'Parcheggio', 'Acqua Potabile'],
-      status: 'approved',
-      images: ['https://images.unsplash.com/photo-1504851149312-7a075b496cc7?w=400'],
-      addedBy: 'Pattuglia Campi',
-      addedDate: '2024-05-10'
+      title: 'Campo Estivo Regionale 2024',
+      location: 'Base Scout Populonia, Livorno',
+      description: 'Campo estivo per la branca E/G con attività di mare e natura',
+      startDate: '2024-07-15',
+      endDate: '2024-07-22',
+      category: 'Campo Estivo',
+      ageGroup: 'E/G (12-15)',
+      maxParticipants: 30,
+      currentParticipants: 25,
+      cost: 180,
+      status: 'open',
+      requirements: ['Saper nuotare', 'Autorizzazione medica']
     },
     {
       id: '2',
-      name: 'Casa Scout Chianti',
-      description: 'Casa scout immersa nelle colline del Chianti',
-      address: 'Strada del Chianti 45',
-      city: 'Greve in Chianti',
-      province: 'FI',
-      contact: {
-        phone: '+39 055 987654',
-        email: 'chianti@agesci-toscana.it',
-        responsible: 'Laura Rossi'
-      },
-      capacity: 80,
-      services: ['Cucina Attrezzata', 'Camere', 'Bagni', 'Sala Attività', 'Giardino'],
-      status: 'approved',
-      images: ['https://images.unsplash.com/photo-1518623489648-a173ef7824f3?w=400'],
-      addedBy: 'Gruppo FI 12',
-      addedDate: '2024-05-05'
+      title: 'Weekend di Formazione Capi',
+      location: 'Casa Scout Vicopelago, Lucca',
+      description: 'Weekend formativo per nuovi capi della regione',
+      startDate: '2024-06-08',
+      endDate: '2024-06-09',
+      category: 'Weekend',
+      ageGroup: 'Capi',
+      maxParticipants: 20,
+      currentParticipants: 20,
+      cost: 45,
+      status: 'full',
+      requirements: ['Essere capi in servizio']
     }
   ]);
 
-  const provinces = ['AR', 'FI', 'GR', 'LI', 'LU', 'MS', 'PI', 'PO', 'PT', 'SI'];
+  const categories = ['Campo Estivo', 'Campo Invernale', 'Weekend', 'Uscita', 'Attività Speciale'];
 
   const filteredCamps = camps.filter(camp => {
-    const matchesSearch = camp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         camp.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = camp.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         camp.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          camp.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesProvince = !selectedProvince || camp.province === selectedProvince;
-    return matchesSearch && matchesProvince && camp.status === 'approved';
+    const matchesCategory = !selectedCategory || camp.category === selectedCategory;
+    return matchesSearch && matchesCategory;
   });
 
   const isAdmin = user?.role === 'admin';
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'open': return 'bg-green-100 text-green-800';
+      case 'full': return 'bg-orange-100 text-orange-800';
+      case 'closed': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'open': return 'Aperto';
+      case 'full': return 'Completo';
+      case 'closed': return 'Chiuso';
+      default: return 'Sconosciuto';
+    }
+  };
 
   return (
     <div className="min-h-screen bg-scout-paper">
       <Header />
       
       <main className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div className="flex items-center space-x-4">
             <Button 
               variant="outline" 
@@ -105,39 +112,30 @@ const CampiScout: React.FC = () => {
               Home
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-scout-forest">🏕️ Campi Scout Toscana</h1>
-              <p className="text-gray-600 mt-1">Trova il campo perfetto per le tue attività</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-scout-forest">🏕️ Campi Scout</h1>
+              <p className="text-gray-600 mt-1 text-sm sm:text-base">Campi e attività AGESCI Toscana</p>
             </div>
           </div>
           
-          <div className="flex space-x-2">
+          {isAdmin && (
             <Button 
-              onClick={() => navigate('/campi-scout/nuovo')}
-              variant="outline"
-              className="border-scout-forest text-scout-forest hover:bg-scout-forest hover:text-white"
+              onClick={() => setIsAddModalOpen(true)}
+              className="bg-scout-forest hover:bg-scout-forest/90 text-white w-full sm:w-auto"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Proponi Campo
+              Gestisci Campo
             </Button>
-            {isAdmin && (
-              <Button 
-                onClick={() => navigate('/admin/campi-scout')}
-                className="bg-scout-forest hover:bg-scout-forest/90 text-white"
-              >
-                Gestisci Campi
-              </Button>
-            )}
-          </div>
+          )}
         </div>
 
         {/* Filtri e Ricerca */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border mb-8">
-          <div className="flex flex-col md:flex-row gap-4">
+        <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border mb-8">
+          <div className="flex flex-col gap-4">
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
-                  placeholder="Cerca campi per nome, città o descrizione..."
+                  placeholder="Cerca campi..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -146,22 +144,22 @@ const CampiScout: React.FC = () => {
             </div>
             <div className="flex flex-wrap gap-2">
               <Button
-                variant={selectedProvince === null ? "default" : "outline"}
+                variant={selectedCategory === null ? "default" : "outline"}
                 size="sm"
-                onClick={() => setSelectedProvince(null)}
-                className={selectedProvince === null ? "bg-scout-forest" : ""}
+                onClick={() => setSelectedCategory(null)}
+                className={selectedCategory === null ? "bg-scout-forest" : ""}
               >
-                Tutte le Province
+                Tutti
               </Button>
-              {provinces.map(province => (
+              {categories.map(category => (
                 <Button
-                  key={province}
-                  variant={selectedProvince === province ? "default" : "outline"}
+                  key={category}
+                  variant={selectedCategory === category ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setSelectedProvince(province)}
-                  className={selectedProvince === province ? "bg-scout-forest" : ""}
+                  onClick={() => setSelectedCategory(category)}
+                  className={selectedCategory === category ? "bg-scout-forest" : ""}
                 >
-                  {province}
+                  {category}
                 </Button>
               ))}
             </div>
@@ -169,25 +167,25 @@ const CampiScout: React.FC = () => {
         </div>
 
         {/* Lista Campi */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {filteredCamps.map(camp => (
             <Card key={camp.id} className="scout-card hover:shadow-lg transition-shadow">
-              <div className="aspect-video relative overflow-hidden rounded-t-lg">
-                <img 
-                  src={camp.images[0]} 
-                  alt={camp.name}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute top-4 right-4">
-                  <Badge className="bg-scout-forest text-white">
-                    {camp.province}
-                  </Badge>
-                </div>
-              </div>
-              
               <CardHeader>
                 <div className="flex justify-between items-start">
-                  <CardTitle className="text-xl text-scout-forest">{camp.name}</CardTitle>
+                  <div className="flex-1">
+                    <CardTitle className="text-xl text-scout-forest">{camp.title}</CardTitle>
+                    <div className="flex flex-wrap items-center gap-2 mt-2">
+                      <Badge variant="secondary" className="bg-scout-yellow/20 text-scout-forest">
+                        {camp.category}
+                      </Badge>
+                      <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                        {camp.ageGroup}
+                      </Badge>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(camp.status)}`}>
+                        {getStatusText(camp.status)}
+                      </span>
+                    </div>
+                  </div>
                   {isAdmin && (
                     <Button variant="outline" size="sm">
                       Modifica
@@ -198,47 +196,55 @@ const CampiScout: React.FC = () => {
               </CardHeader>
 
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center text-sm text-gray-600">
-                    <MapPin className="w-4 h-4 mr-2" />
-                    {camp.address}, {camp.city} ({camp.province})
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                  <div className="flex items-center">
+                    <Calendar className="w-4 h-4 mr-2 text-gray-500" />
+                    <span>
+                      {new Date(camp.startDate).toLocaleDateString('it-IT')} - {new Date(camp.endDate).toLocaleDateString('it-IT')}
+                    </span>
                   </div>
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Users className="w-4 h-4 mr-2" />
-                    Capacità: {camp.capacity} persone
+                  <div className="flex items-center">
+                    <MapPin className="w-4 h-4 mr-2 text-gray-500" />
+                    <span className="truncate">{camp.location}</span>
                   </div>
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Phone className="w-4 h-4 mr-2" />
-                    {camp.contact.phone}
+                  <div className="flex items-center">
+                    <Users className="w-4 h-4 mr-2 text-gray-500" />
+                    <span>{camp.currentParticipants}/{camp.maxParticipants} partecipanti</span>
                   </div>
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Mail className="w-4 h-4 mr-2" />
-                    {camp.contact.email}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-semibold text-scout-forest mb-2">Servizi disponibili:</h4>
-                  <div className="flex flex-wrap gap-1">
-                    {camp.services.map(service => (
-                      <Badge key={service} variant="outline" className="text-xs">
-                        {service}
-                      </Badge>
-                    ))}
+                  <div className="flex items-center">
+                    <Euro className="w-4 h-4 mr-2 text-gray-500" />
+                    <span>{camp.cost}€</span>
                   </div>
                 </div>
 
-                <div className="flex space-x-2">
+                {camp.requirements.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-scout-forest mb-2 text-sm">Requisiti:</h4>
+                    <div className="flex flex-wrap gap-1">
+                      {camp.requirements.map(req => (
+                        <span 
+                          key={req}
+                          className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full"
+                        >
+                          {req}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex space-x-2 pt-2">
                   <Button 
                     variant="outline" 
                     className="flex-1 border-scout-forest text-scout-forest hover:bg-scout-forest hover:text-white"
                   >
-                    Vedi Dettagli
+                    Dettagli
                   </Button>
                   <Button 
                     className="flex-1 bg-scout-forest hover:bg-scout-forest/90"
+                    disabled={camp.status !== 'open'}
                   >
-                    Contatta
+                    {camp.status === 'open' ? 'Iscriviti' : camp.status === 'full' ? 'Completo' : 'Chiuso'}
                   </Button>
                 </div>
               </CardContent>
@@ -252,6 +258,11 @@ const CampiScout: React.FC = () => {
           </div>
         )}
       </main>
+
+      <AddCampModal 
+        open={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)} 
+      />
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { ArrowLeft, Plus, Search, Calendar, User } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import { useAuth } from '../contexts/AuthContext';
+import AddNewsModal from '../components/modals/AddNewsModal';
 
 interface NewsArticle {
   id: string;
@@ -24,6 +24,7 @@ const Notizie: React.FC = () => {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   // Mock data - in produzione verrebbe da database
   const [articles] = useState<NewsArticle[]>([
@@ -81,7 +82,7 @@ const Notizie: React.FC = () => {
           
           {isAdmin && (
             <Button 
-              onClick={() => navigate('/admin/notizie/nuova')}
+              onClick={() => setIsAddModalOpen(true)}
               className="bg-scout-forest hover:bg-scout-forest/90 text-white w-full sm:w-auto"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -179,6 +180,11 @@ const Notizie: React.FC = () => {
           </div>
         )}
       </main>
+
+      <AddNewsModal 
+        open={isAddModalOpen} 
+        onClose={() => setIsAddModalOpen(false)} 
+      />
     </div>
   );
 };
