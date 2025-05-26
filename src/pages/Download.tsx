@@ -82,9 +82,9 @@ const Download: React.FC = () => {
     const link = window.document.createElement('a');
     link.href = '#';
     link.download = document.filename;
-    document.body.appendChild(link);
+    window.document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    window.document.body.removeChild(link);
   };
 
   return (
