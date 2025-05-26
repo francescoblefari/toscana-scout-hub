@@ -14,13 +14,13 @@ interface SectionButtonProps {
 
 const SectionButton: React.FC<SectionButtonProps> = ({ title, description, icon, onClick, color }) => (
   <Card 
-    className={`scout-card cursor-pointer transform hover:scale-105 transition-all duration-200 h-48 ${color} border-2 hover:border-scout-forest`}
+    className={`scout-card cursor-pointer transform hover:scale-105 transition-all duration-200 h-44 sm:h-48 ${color} border-2 hover:border-scout-forest`}
     onClick={onClick}
   >
-    <CardContent className="p-8 h-full flex flex-col justify-center items-center text-center">
-      <div className="text-5xl mb-4">{icon}</div>
-      <h3 className="font-bold text-xl mb-2 text-scout-forest">{title}</h3>
-      <p className="text-base text-gray-700 font-medium">{description}</p>
+    <CardContent className="p-4 sm:p-8 h-full flex flex-col justify-center items-center text-center">
+      <div className="text-4xl sm:text-5xl mb-3 sm:mb-4">{icon}</div>
+      <h3 className="font-bold text-lg sm:text-xl mb-2 text-scout-forest leading-tight">{title}</h3>
+      <p className="text-sm sm:text-base text-gray-700 font-medium leading-tight">{description}</p>
     </CardContent>
   </Card>
 );
@@ -77,17 +77,17 @@ const HomePage: React.FC = () => {
     <div className="min-h-screen bg-scout-paper">
       <Header />
       
-      <main className="container mx-auto px-4 py-8">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-scout-forest mb-4">
+      <main className="container mx-auto px-4 py-6 sm:py-8">
+        <div className="text-center mb-8 sm:mb-12">
+          <h2 className="text-3xl sm:text-4xl font-bold text-scout-forest mb-4">
             Benvenuto nell'Area Riservata
           </h2>
-          <p className="text-xl text-gray-700 font-medium">
+          <p className="text-lg sm:text-xl text-gray-700 font-medium px-4">
             Scegli una sezione per iniziare
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 max-w-6xl mx-auto">
           {sections.map((section, index) => (
             <div key={index} className="animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
               <SectionButton {...section} />
@@ -95,16 +95,16 @@ const HomePage: React.FC = () => {
           ))}
         </div>
 
-        <div className="mt-16 text-center">
-          <div className="bg-white rounded-xl p-8 shadow-lg border-2 border-scout-forest/20">
-            <h3 className="text-2xl font-semibold text-scout-forest mb-4">
+        <div className="mt-12 sm:mt-16">
+          <div className="bg-white rounded-xl p-6 sm:p-8 shadow-lg border-2 border-scout-forest/20">
+            <h3 className="text-xl sm:text-2xl font-semibold text-scout-forest mb-4 text-center">
               🌲 Buona Strada! 🌲
             </h3>
-            <p className="text-lg text-gray-700 leading-relaxed">
+            <p className="text-base sm:text-lg text-gray-700 leading-relaxed text-center">
               "Il metodo scout è un sistema di autoeducazione progressiva, 
               fondato sull'onore, basato sull'osservazione della natura..."
             </p>
-            <p className="text-base text-gray-600 mt-3 font-medium">- Robert Baden-Powell</p>
+            <p className="text-sm sm:text-base text-gray-600 mt-3 font-medium text-center">- Robert Baden-Powell</p>
           </div>
         </div>
       </main>

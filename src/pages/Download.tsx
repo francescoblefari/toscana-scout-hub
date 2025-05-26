@@ -78,11 +78,13 @@ const Download: React.FC = () => {
   const handleDownload = (document: Document) => {
     // In produzione, qui ci sarebbe la logica per scaricare il file
     console.log(`Downloading: ${document.filename}`);
-    // Simuliamo il download
-    const link = document.createElement('a');
+    // Simuliamo il download correttamente
+    const link = window.document.createElement('a');
     link.href = '#';
     link.download = document.filename;
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -90,7 +92,7 @@ const Download: React.FC = () => {
       <Header />
       
       <main className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div className="flex items-center space-x-4">
             <Button 
               variant="outline" 
@@ -101,15 +103,15 @@ const Download: React.FC = () => {
               Home
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-scout-forest">📁 Download Documenti</h1>
-              <p className="text-gray-600 mt-1">Documenti, moduli e linee guida AGESCI</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-scout-forest">📁 Download Documenti</h1>
+              <p className="text-gray-600 mt-1 text-sm sm:text-base">Documenti, moduli e linee guida AGESCI</p>
             </div>
           </div>
           
           {isAdmin && (
             <Button 
               onClick={() => navigate('/admin/download/nuovo')}
-              className="bg-scout-forest hover:bg-scout-forest/90 text-white"
+              className="bg-scout-forest hover:bg-scout-forest/90 text-white w-full sm:w-auto"
             >
               <Plus className="w-4 h-4 mr-2" />
               Carica Documento
@@ -118,8 +120,8 @@ const Download: React.FC = () => {
         </div>
 
         {/* Filtri e Ricerca */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border mb-8">
-          <div className="flex flex-col md:flex-row gap-4">
+        <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border mb-8">
+          <div className="flex flex-col gap-4">
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -156,10 +158,10 @@ const Download: React.FC = () => {
         </div>
 
         {/* Lista Documenti */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {filteredDocuments.map(document => (
             <Card key={document.id} className="scout-card hover:shadow-lg transition-shadow">
-              <CardHeader>
+              <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
                   <FileText className="w-8 h-8 text-scout-forest mb-2" />
                   {isAdmin && (
@@ -168,12 +170,12 @@ const Download: React.FC = () => {
                     </Button>
                   )}
                 </div>
-                <CardTitle className="text-lg text-scout-forest">{document.title}</CardTitle>
-                <CardDescription>{document.description}</CardDescription>
+                <CardTitle className="text-lg text-scout-forest leading-tight">{document.title}</CardTitle>
+                <CardDescription className="text-sm">{document.description}</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 pt-0">
                 <div className="flex justify-between items-center">
-                  <Badge variant="secondary" className="bg-scout-yellow/20 text-scout-forest">
+                  <Badge variant="secondary" className="bg-scout-yellow/20 text-scout-forest text-xs">
                     {document.category}
                   </Badge>
                   <span className="text-sm text-gray-500">{document.fileSize}</span>
@@ -181,16 +183,16 @@ const Download: React.FC = () => {
                 
                 <div className="text-sm text-gray-600 space-y-1">
                   <div className="flex items-center">
-                    <Calendar className="w-4 h-4 mr-2" />
-                    {new Date(document.uploadDate).toLocaleDateString('it-IT')}
+                    <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span className="truncate">{new Date(document.uploadDate).toLocaleDateString('it-IT')}</span>
                   </div>
                   <div className="flex items-center">
-                    <User className="w-4 h-4 mr-2" />
-                    {document.uploadedBy}
+                    <User className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span className="truncate">{document.uploadedBy}</span>
                   </div>
                   <div className="flex items-center">
-                    <DownloadIcon className="w-4 h-4 mr-2" />
-                    {document.downloadCount} download
+                    <DownloadIcon className="w-4 h-4 mr-2 flex-shrink-0" />
+                    <span>{document.downloadCount} download</span>
                   </div>
                 </div>
 

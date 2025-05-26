@@ -63,7 +63,7 @@ const Notizie: React.FC = () => {
       <Header />
       
       <main className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div className="flex items-center space-x-4">
             <Button 
               variant="outline" 
@@ -74,15 +74,15 @@ const Notizie: React.FC = () => {
               Home
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-scout-forest">📰 Notizie AGESCI Toscana</h1>
-              <p className="text-gray-600 mt-1">Tutte le ultime comunicazioni e novità</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-scout-forest">📰 Notizie AGESCI Toscana</h1>
+              <p className="text-gray-600 mt-1 text-sm sm:text-base">Tutte le ultime comunicazioni e novità</p>
             </div>
           </div>
           
           {isAdmin && (
             <Button 
               onClick={() => navigate('/admin/notizie/nuova')}
-              className="bg-scout-forest hover:bg-scout-forest/90 text-white"
+              className="bg-scout-forest hover:bg-scout-forest/90 text-white w-full sm:w-auto"
             >
               <Plus className="w-4 h-4 mr-2" />
               Nuova Notizia
@@ -91,8 +91,8 @@ const Notizie: React.FC = () => {
         </div>
 
         {/* Filtri e Ricerca */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border mb-8">
-          <div className="flex flex-col md:flex-row gap-4">
+        <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border mb-8">
+          <div className="flex flex-col gap-4">
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -133,7 +133,7 @@ const Notizie: React.FC = () => {
           {filteredArticles.map(article => (
             <Card key={article.id} className="scout-card hover:shadow-lg transition-shadow">
               <CardHeader>
-                <div className="flex justify-between items-start">
+                <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                   <CardTitle className="text-xl text-scout-forest hover:text-scout-forest/80 cursor-pointer">
                     {article.title}
                   </CardTitle>
@@ -153,8 +153,8 @@ const Notizie: React.FC = () => {
                     </Badge>
                   ))}
                 </div>
-                <div className="flex items-center justify-between text-sm text-gray-600">
-                  <div className="flex items-center space-x-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-sm text-gray-600 gap-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-1 sm:space-y-0 sm:space-x-4">
                     <div className="flex items-center">
                       <Calendar className="w-4 h-4 mr-1" />
                       {new Date(article.date).toLocaleDateString('it-IT')}
