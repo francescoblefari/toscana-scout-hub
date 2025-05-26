@@ -1,0 +1,14 @@
+[
+  {
+    "id": "1",
+    "email": "admin@agesci-toscana.it",
+    "password": "scout2024",
+    "role": "admin"
+  },
+  {
+    "id": "2",
+    "email": "capo@agesci-toscana.it",
+    "password": "password123",
+    "role": "editor"
+  }
+]

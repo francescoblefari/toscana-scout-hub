@@ -1,0 +1,21 @@
+[
+  {
+    "id": "1",
+    "name": "Campo Base Populonia",
+    "description": "Campo base regionale con vista sul mare, ideale per tutte le branche",
+    "address": "Via del Campo 123",
+    "city": "Populonia",
+    "province": "LI",
+    "contact": {
+      "phone": "+39 0565 123456",
+      "email": "populonia@agesci-toscana.it",
+      "responsible": "Marco Bianchi"
+    },
+    "capacity": 120,
+    "services": ["Cucina", "Bagni", "Docce", "Area Fuoco", "Parcheggio", "Acqua Potabile"],
+    "status": "approved",
+    "images": ["https://images.unsplash.com/photo-1504851149312-7a075b496cc7?w=400"],
+    "addedBy": "Pattuglia Campi",
+    "addedDate": "2024-05-10"
+  }
+]

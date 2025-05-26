@@ -1,62 +1,85 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Plus, Search, Calendar, User } from "lucide-react";
+import { ArrowLeft, Plus, Search, Calendar, User, Edit, Trash2 } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import { useAuth } from '../contexts/AuthContext';
+import apiClient from '@/lib/apiClient';
+import { toast } from '@/hooks/use-toast';
 
 interface NewsArticle {
   id: string;
   title: string;
-  content: string;
+  content: string; // Full content for detail view, not always shown in list
   author: string;
-  date: string;
+  date: string; // ISO date string
   categories: string[];
-  excerpt: string;
+  excerpt?: string; // Optional short summary
 }
 
 const Notizie: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { token, isAdmin } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [articles, setArticles] = useState<NewsArticle[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [allCategories, setAllCategories] = useState<string[]>([]);
 
-  // Mock data - in produzione verrebbe da database
-  const [articles] = useState<NewsArticle[]>([
-    {
-      id: '1',
-      title: 'Assemblea Regionale AGESCI Toscana 2024',
-      content: 'Si terrà il prossimo weekend l\'assemblea regionale...',
-      author: 'Pattuglia Stampa Toscana',
-      date: '2024-05-20',
-      categories: ['Assemblee', 'Eventi'],
-      excerpt: 'Importante appuntamento per tutti i capi della Toscana'
-    },
-    {
-      id: '2',
-      title: 'Nuovo Campo Base Regionale a Populonia',
-      content: 'È stato inaugurato il nuovo campo base regionale...',
-      author: 'Pattuglia Campi',
-      date: '2024-05-18',
-      categories: ['Campi', 'Strutture'],
-      excerpt: 'Una nuova risorsa per le attività scout in Toscana'
+
+  const fetchNews = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const fetchedArticles = await apiClient<NewsArticle[]>('/news', { token });
+      setArticles(fetchedArticles || []);
+      // Extract all unique categories from fetched articles
+      const uniqueCategories = new Set<string>();
+      (fetchedArticles || []).forEach(article => {
+        article.categories.forEach(cat => uniqueCategories.add(cat));
+      });
+      setAllCategories(Array.from(uniqueCategories));
+    } catch (error: any) {
+      toast({ title: "Errore nel caricamento", description: error.message || "Impossibile caricare le notizie.", variant: "destructive" });
+      setArticles([]);
+    } finally {
+      setIsLoading(false);
     }
-  ]);
+  }, [token]);
 
-  const categories = ['Assemblee', 'Eventi', 'Campi', 'Strutture', 'Formazione', 'Comunicazioni'];
+  useEffect(() => {
+    fetchNews();
+  }, [fetchNews]);
+
+  const handleCreateNews = () => {
+    navigate('/admin/notizie/nuova'); // Navigate to a form for creating news
+  };
+
+  const handleEditNews = (articleId: string) => {
+    navigate(`/admin/notizie/modifica/${articleId}`); // Navigate to an edit form
+  };
+
+  const handleDeleteNews = async (articleId: string) => {
+    if (!window.confirm("Sei sicuro di voler eliminare questa notizia?")) return;
+    try {
+      await apiClient(`/news/${articleId}`, { method: 'DELETE', token });
+      toast({ title: "Notizia eliminata", description: "L'articolo è stato rimosso con successo." });
+      fetchNews(); // Refresh list
+    } catch (error: any) {
+      toast({ title: "Errore", description: error.message || "Impossibile eliminare la notizia.", variant: "destructive" });
+    }
+  };
 
   const filteredArticles = articles.filter(article => {
     const matchesSearch = article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (article.excerpt && article.excerpt.toLowerCase().includes(searchTerm.toLowerCase())) ||
                          article.content.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = !selectedCategory || article.categories.includes(selectedCategory);
+    const matchesCategory = !selectedCategory || (article.categories && article.categories.includes(selectedCategory));
     return matchesSearch && matchesCategory;
   });
-
-  const isAdmin = user?.role === 'admin';
 
   return (
     <div className="min-h-screen bg-scout-paper">
@@ -79,9 +102,9 @@ const Notizie: React.FC = () => {
             </div>
           </div>
           
-          {isAdmin && (
+          {isAdmin() && (
             <Button 
-              onClick={() => navigate('/admin/notizie/nuova')}
+              onClick={handleCreateNews}
               className="bg-scout-forest hover:bg-scout-forest/90 text-white"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -90,7 +113,6 @@ const Notizie: React.FC = () => {
           )}
         </div>
 
-        {/* Filtri e Ricerca */}
         <div className="bg-white rounded-xl p-6 shadow-sm border mb-8">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
@@ -109,17 +131,17 @@ const Notizie: React.FC = () => {
                 variant={selectedCategory === null ? "default" : "outline"}
                 size="sm"
                 onClick={() => setSelectedCategory(null)}
-                className={selectedCategory === null ? "bg-scout-forest" : ""}
+                className={selectedCategory === null ? "bg-scout-forest text-white" : "border-scout-forest text-scout-forest"}
               >
                 Tutte
               </Button>
-              {categories.map(category => (
+              {allCategories.map(category => (
                 <Button
                   key={category}
                   variant={selectedCategory === category ? "default" : "outline"}
                   size="sm"
                   onClick={() => setSelectedCategory(category)}
-                  className={selectedCategory === category ? "bg-scout-forest" : ""}
+                  className={selectedCategory === category ? "bg-scout-forest text-white" : "border-scout-forest text-scout-forest"}
                 >
                   {category}
                 </Button>
@@ -127,55 +149,70 @@ const Notizie: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* Lista Articoli */}
-        <div className="space-y-6">
-          {filteredArticles.map(article => (
-            <Card key={article.id} className="scout-card hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-xl text-scout-forest hover:text-scout-forest/80 cursor-pointer">
-                    {article.title}
-                  </CardTitle>
-                  {isAdmin && (
-                    <Button variant="outline" size="sm">
-                      Modifica
-                    </Button>
-                  )}
-                </div>
-                <CardDescription className="text-base">{article.excerpt}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {article.categories.map(category => (
-                    <Badge key={category} variant="secondary" className="bg-scout-yellow/20 text-scout-forest">
-                      {category}
-                    </Badge>
-                  ))}
-                </div>
-                <div className="flex items-center justify-between text-sm text-gray-600">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center">
-                      <Calendar className="w-4 h-4 mr-1" />
-                      {new Date(article.date).toLocaleDateString('it-IT')}
-                    </div>
-                    <div className="flex items-center">
-                      <User className="w-4 h-4 mr-1" />
-                      {article.author}
-                    </div>
-                  </div>
-                  <Button variant="link" className="text-scout-forest p-0">
-                    Leggi tutto →
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {filteredArticles.length === 0 && (
+        
+        {isLoading ? (
+          <div className="text-center py-12"><p className="text-lg text-scout-forest">Caricamento notizie...</p></div>
+        ) : filteredArticles.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">Nessuna notizia trovata</p>
+            <p className="text-gray-500 text-lg">Nessuna notizia trovata con i criteri selezionati.</p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {filteredArticles.map(article => (
+              <Card key={article.id} className="scout-card hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <CardTitle 
+                      className="text-xl text-scout-forest hover:text-scout-forest/80 cursor-pointer"
+                      onClick={() => navigate(`/notizie/${article.id}`)} // Navigate to detail page
+                    >
+                      {article.title}
+                    </CardTitle>
+                    {isAdmin() && (
+                       <div className="flex space-x-1">
+                        <Button variant="outline" size="icon" onClick={() => handleEditNews(article.id)} className="text-scout-orange border-scout-orange hover:bg-scout-orange hover:text-white">
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button variant="outline" size="icon" onClick={() => handleDeleteNews(article.id)} className="text-red-600 border-red-600 hover:bg-red-600 hover:text-white">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                  <CardDescription className="text-base">{article.excerpt || article.content.substring(0, 150) + '...'}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {article.categories && article.categories.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {article.categories.map(category => (
+                        <Badge key={category} variant="secondary" className="bg-scout-khaki text-scout-forest">
+                          {category}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between text-sm text-gray-600">
+                    <div className="flex items-center space-x-4">
+                      <div className="flex items-center">
+                        <Calendar className="w-4 h-4 mr-1 text-scout-forest" />
+                        {new Date(article.date).toLocaleDateString('it-IT')}
+                      </div>
+                      <div className="flex items-center">
+                        <User className="w-4 h-4 mr-1 text-scout-forest" />
+                        {article.author}
+                      </div>
+                    </div>
+                    <Button 
+                      variant="link" 
+                      className="text-scout-forest p-0 hover:text-scout-orange"
+                      onClick={() => navigate(`/notizie/${article.id}`)} // Navigate to detail page
+                    >
+                      Leggi tutto →
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         )}
       </main>
